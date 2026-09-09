@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShiftGrid Cipher - Official Specification Suite</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #121212;
+            color: #fff;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+        }
+        .section {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        h2, h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        textarea {
+            width: 100%;
+            height: 90px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        #outputResult {
+            background: #181818;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px dashed #444;
+            word-break: break-all;
+            min-height: 20px;
+        }
+        code, pre {
+            background: #222;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #a5d6a7;
+        }
+        pre {
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- OFFICIAL SPECIFICATION DOCUMENTATION -->
+    <div class="section">
+        <h2>ShiftGrid Cipher Specification</h2>
+        <p><strong>Creator:</strong> sunflowerroad4@gmail.com</p>
+        <p><strong>Architecture:</strong> <code>(3A | 3S)</code> (3 rows alphabetically | 3 rows special characters)</p>
+        
+        <h3>How the Cipher Works</h3>
+        <p>The alphabet is listed vertically downwards across 3 rows (minimum) with 3 letters per row. Even-numbered rows are flipped backwards, while everything is read strictly from left to right. Specific positions use slash tallies to indicate row depth and column index (e.g., <code>1/</code> for 'a', <code>1//</code> for 'z').</p>
+
+        <h3>Lowercase Alphabet Matrix (3A)</h3>
+        <pre>Row 1 (1/-9/):    a  d  g  j  m  p  s  v  y
+Row 2 (1//-9//):  z  w  t  q  n  k  h  e  b
+Row 3 (1///-8///): c  f  i  l  o  r  u  x</pre>
+        <p><em>Example:</em> <code>7//8//4///4///5///</code> = hello</p>
+
+        <h3>Uppercase Alphabet Matrix (3A)</h3>
+        <p>Uppercase letters use the exact same numeric coordinates prefixed with a <code>#</code> symbol.</p>
+        <pre>Row 1 (#1/-#9/):    A  D  G  J  M  P  S  V  Y
+Row 2 (#1//-#9//):  Z  W  T  Q  N  K  H  E  B
+Row 3 (#1///-#8///): C  F  I  L  O  R  U  X</pre>
+        <p><em>Example:</em> <code>#7//#8//#4///#4///#5///</code> = HELLO</p>
+
+        <h3>Special Characters Matrix (3S)</h3>
+        <p>Sorted by English special character frequency in a 3x3 grid, enclosed in parentheses to prevent confusion with letter coordinates.</p>
+        <pre>Row 1 (1-3):     (1) .   (2) ,   (3) “
+Row 2 (1/-3/):   (1/) ‘  (2/) -   (3/) ;
+Row 3 (1//-3//): (1//) : (2//) ? (3//) !
+Space:           [Space Token]</pre>
+    </div>
+
+    <!-- INTERACTIVE TRANSLATION TOOL -->
+    <div class="section">
+        <h3>ShiftGrid Translation Tool</h3>
+        
+        <label for="plainInput"><strong>Plaintext Input (To Encode):</strong></label>
+        <textarea id="plainInput" placeholder="Enter text to encode..."></textarea>
+        <button onclick="encodeMessage()">Encode to ShiftGrid</button>
+
+        <label for="cipherInput" style="margin-top: 15px; display: block;"><strong>Ciphertext Input (To Decode):</strong></label>
+        <textarea id="cipherInput" placeholder="(3A | 3S) Enter ciphertext here..."></textarea>
+        <button onclick="decodeMessage()" style="background: #17a2b8;">Decode to English</button>
+
+        <h3>Result:</h3>
+        <p id="outputResult"></p>
+    </div>
+
+</div>
+
+<script>
+    const encodeMap = {
+        'a': '1/', 'd': '2/', 'g': '3/', 'j': '4/', 'm': '5/', 'p': '6/', 's': '7/', 'v': '8/', 'y': '9/',
+        'z': '1//', 'w': '2//', 't': '3//', 'q': '4//', 'n': '5//', 'k': '6//', 'h': '7//', 'e': '8//', 'b': '9//',
+        'c': '1///', 'f': '2///', 'i': '3///', 'l': '4///', 'o': '5///', 'r': '6///', 'u': '7///', 'x': '8///',
+        
+        'A': '#1/', 'D': '#2/', 'G': '#3/', 'J': '#4/', 'M': '#5/', 'P': '#6/', 'S': '#7/', 'V': '#8/', 'Y': '#9/',
+        'Z': '#1//', 'W': '#2//', 'T': '#3//', 'Q': '#4//', 'N': '#5//', 'K': '#6//', 'H': '#7//', 'E': '#8//', 'B': '#9//',
+        'C': '#1///', 'F': '#2///', 'I': '#3///', 'L': '#4///', 'O': '#5///', 'R': '#6///', 'U': '#7///', 'X': '#8///',
+        
+        '.': '(1)', ',': '(2)', '"': '(3)', '“': '(3)', '”': '(3)',
+        "'": '(1/)', '‘': '(1/)', '’': '(1/)', '-': '(2/)', ';': '(3/)',
+        ':': '(1//)', '?': '(2//)', '!': '(3//)',
+        ' ': ' '
+    };
+
+    const decodeMap = {};
+    for (let key in encodeMap) {
+        if (!decodeMap[encodeMap[key]]) {
+            decodeMap[encodeMap[key]] = key;
+        }
+    }
+    decodeMap['(3)'] = '"';
+    decodeMap['(1/)'] = "'";
+
+    function encodeMessage() {
+        let plainText = document.getElementById('plainInput').value;
+        let result = "(3A | 3S) ";
+        let currentSegment = "";
+
+        for (let i = 0; i < plainText.length; i++) {
+            let char = plainText[i];
+            let mappingKey = encodeMap[char] !== undefined ? char : null;
+
+            if (mappingKey !== null) {
+                let code = encodeMap[mappingKey];
+                if (code === ' ') {
+                    if (currentSegment) {
+                        result += currentSegment + " ";
+                        currentSegment = "";
+                    }
+                } else {
+                    currentSegment += code;
+                }
+            }
+        }
+        if (currentSegment) {
+            result += currentSegment;
+        }
+        document.getElementById('outputResult').innerText = result;
+    }
+
+    function decodeMessage() {
+        let cipherText = document.getElementById('cipherInput').value.trim();
+        if (cipherText.startsWith("(3A | 3S)")) {
+            cipherText = cipherText.replace("(3A | 3S)", "").trim();
+        }
+
+        let tokens = cipherText.split(' ');
+        let decodedMessage = "";
+
+        for (let t of tokens) {
+            let currentToken = t;
+            let i = 0;
+
+            while (i < currentToken.length) {
+                if (currentToken[i] === '(') {
+                    let closeIndex = currentToken.indexOf(')', i);
+                    if (closeIndex !== -1) {
+                        let punct = currentToken.substring(i, closeIndex + 1);
+                        if (decodeMap[punct] !== undefined) {
+                            decodedMessage += decodeMap[punct];
+                        }
+                        i = closeIndex + 1;
+                        continue;
+                    }
+                }
+
+                let chunk = "";
+                if (currentToken[i] === '#') {
+                    chunk += '#';
+                    i++;
+                }
+
+                if (i < currentToken.length && currentToken[i] >= '1' && currentToken[i] <= '9') {
+                    chunk += currentToken[i];
+                    i++;
+                    while (i < currentToken.length && currentToken[i] === '/') {
+                        chunk += '/';
+                        i++;
+                    }
+                } else {
+                    i++;
+                }
+
+                if (decodeMap[chunk] !== undefined) {
+                    decodedMessage += decodeMap[chunk];
+                }
+            }
+            decodedMessage += " ";
+        }
+
+        document.getElementById('outputResult').innerText = decodedMessage.trim();
+    }
+</script>
+
+</body>
+</html>
